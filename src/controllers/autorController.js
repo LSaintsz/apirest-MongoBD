@@ -1,4 +1,4 @@
-import { autor } from "../models/Autor.js"
+import autor from "../models/Autor.js"
 
 class AutorController{
 
@@ -12,42 +12,46 @@ class AutorController{
         }
     }
 
-    static async listarAutorPorId (req, res){ 
+    static async listarAutorPorId (req, res, next){ 
         try{
             const id = req.params.id;
-            const autorEncontrado = await autor.findById(id);
-            res.status(200).json(autorEncontrado);
+            const autorResultado = await autor.findById(id);
+            if (autorResultado !== null){
+                res.status(200).json(autorResultado);
+            } else {
+                res.status(404).send({message: "Id do autor não localizado"});
+            }
+            
         } catch(erro){
-            res.status(500).json({ message: `${erro.message} - falha na requisição do autor`});
+            next(erro);
         }
     }
 
-    static async cadastrarAutor (req, res){
+    static async cadastrarAutor (req, res, next){
         try {
             const novoAutor = await autor.create(req.body);
             res.status(201).json({ message: "criado com sucesso", livro: novoAutor});
         } catch (erro){
-            res.status(500).json({ message: `${erro.message} - falha ao cadastrar livro`});
+            next(erro);
         }
     }
 
-    static async atualizarAutor (req, res){ 
+    static async atualizarAutor (req, res, next){ 
         try{
             const id = req.params.id;
             await autor.findByIdAndUpdate(id, req.body);
             res.status(200).json({ message: "autor atualizado"});
         } catch(erro){
-            res.status(500).json({ message: `${erro.message} - falha na atualização`});
-        }
-    }
-
-    static async excluirAutor (req, res){ 
+            next(erro);
+    } }
+     
+    static async excluirAutor (req, res, next){ 
         try{
             const id = req.params.id;
             await autor.findByIdAndDelete(id);
             res.status(200).json({ message: "autor excluído com sucesso"});
         } catch(erro){
-            res.status(500).json({ message: `${erro.message} - falha na exclusão`});
+            next(erro);
         }
     }
 

@@ -1,11 +1,7 @@
 import express from "express";
 import conectaNaDatabase from "./config/dbConnect.js";
 import routes from "./routes/index.js";
-
-
-/* import livro from "./models/Livro.js"; */
-
-
+import manipuladorDeErros from "./middlewares/manipuladorDeErros.js";
 
 const conexao = await conectaNaDatabase();
 
@@ -19,6 +15,14 @@ conexao.once("open", () => {
 
 const app = express();
 routes(app);
+
+ 
+app.use(manipuladorDeErros);
+
+export default app;
+
+//mongodb+srv://leosantosfig03_db_user:<db_password>@aula-mongo.ag0kj23.mongodb.net/?appName=aula-mongo
+
 
 /* app.get("/", (req, res)=>{
     res.status(200).send("Curso de Node.js");
@@ -52,8 +56,3 @@ app.put("/livros/:id", (req, res) =>{   // sempre lembrar dos dois pontos.
 });
  */
 // lembrar do status 200 e status 201.
-
-
-export default app;
-
-//mongodb+srv://leosantosfig03_db_user:<db_password>@aula-mongo.ag0kj23.mongodb.net/?appName=aula-mongo
