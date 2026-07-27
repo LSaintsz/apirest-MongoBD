@@ -112,7 +112,7 @@ class LivroController {
 async function processaBusca(params) {
     const { editora, titulo, minPaginas, maxPaginas, nomeAutor } = params;
 
-    const busca = {};
+    let busca = {};
 
     if (editora) {
         busca.editora = editora;
@@ -144,7 +144,7 @@ async function processaBusca(params) {
         if (autorEncontrado !== null) {
             busca.autor = autorEncontrado._id;
         } else {
-            return null; // Retorna null para o controller saber que o autor não existe
+            busca = null;
         }
     }
 
