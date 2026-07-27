@@ -91,27 +91,64 @@ class LivroController {
     };
 
     static async listarLivrosPorFiltro(req, res, next) {
-        const { editora, titulo } = req.query;
-
-
-        const busca = {};
-
-        if (editora) {
-            busca.editora = editora;
-        }
-
-        if (titulo) {
-            busca.titulo = { $regex: titulo, $options: "i" }; // Busca por título com regex, ignorando maiúsculas/minúsculas
-        }
-
         try {
-            const livrosPorEditora = await livro.find(busca);
-            res.status(200).json(livrosPorEditora);
+            // Adicionado 'await' pois processaBusca tornou-se assíncrona
+            const busca = await processaBusca(req.query);
+
+            if (busca !== null) {
+                const livrosPorEditora = await livro.find(busca).populate("autor");
+                res.status(200).json(livrosPorEditora);
+            } else {
+                // Se o autor informado na busca não foi localizado no banco
+                res.status(200).json([]);
+            }
         } catch (erro) {
             next(erro);
         }
     }
 
+}
+
+async function processaBusca(params) {
+    const { editora, titulo, minPaginas, maxPaginas, nomeAutor } = params;
+
+    const busca = {};
+
+    if (editora) {
+        busca.editora = editora;
+    }
+
+    if (titulo) {
+        busca.titulo = { $regex: titulo, $options: "i" }; // Busca por título com regex
+    }
+
+    // gte = Greater Than or Equal (maior ou igual)
+    // lte = Less than or Equal
+
+    if (minPaginas || maxPaginas) {
+        busca.paginas = {};
+    }
+
+    if (minPaginas) {
+        busca.paginas.$gte = parseInt(minPaginas);
+    }
+
+    if (maxPaginas) {
+        busca.paginas.$lte = parseInt(maxPaginas);
+    }
+
+    if (nomeAutor) {
+        // Renomeado para autorEncontrado para não conflitar com a importação do modelo 'autor'
+        const autorEncontrado = await autor.findOne({ nome: { $regex: nomeAutor, $options: "i" } });
+
+        if (autorEncontrado !== null) {
+            busca.autor = autorEncontrado._id;
+        } else {
+            return null; // Retorna null para o controller saber que o autor não existe
+        }
+    }
+
+    return busca;
 }
 
 export default LivroController;
