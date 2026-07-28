@@ -4,10 +4,13 @@ import { autor } from "../models/index.js"
 class AutorController{
 
     //static -> usar metodos sem precisar estanciar as classes.
-    static async listarAutores (req, res){ 
+    static async listarAutores (req, res, next){ 
         try{
-            const listaAutores = await autor.find({});
-            res.status(200).json(listaAutores);
+            const listaAutores = autor.find({});
+
+            req.resultado = listaAutores;
+
+            next();
         } catch(erro){
             res.status(500).json({ message: `${erro.message} - falha na requisição`});
         }

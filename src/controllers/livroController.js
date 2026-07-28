@@ -1,14 +1,18 @@
+ 
 import { livro } from "../models/index.js";
 import autor from "../models/Autor.js";
 import NaoEncontrado from "../erros/NaoEncontrado.js";
+
 
 class LivroController {
 
     // static -> usar metodos sem precisar instanciar a classe.
     static async listarLivros(req, res, next) {
         try {
-            const listaLivros = await livro.find({});
-            res.status(200).json(listaLivros);
+            const buscaLivros = livro.find();
+
+            req.resultado = buscaLivros;
+            next();
         } catch (erro) {
             next(erro);
         }
@@ -96,8 +100,11 @@ class LivroController {
             const busca = await processaBusca(req.query);
 
             if (busca !== null) {
-                const livrosPorEditora = await livro.find(busca).populate("autor");
-                res.status(200).json(livrosPorEditora);
+                const livrosPorFiltro = livro.find(busca).populate("autor");
+
+                req.resultado = livrosPorFiltro;
+
+                next();
             } else {
                 // Se o autor informado na busca não foi localizado no banco
                 res.status(200).json([]);
@@ -111,7 +118,6 @@ class LivroController {
 
 async function processaBusca(params) {
     const { editora, titulo, minPaginas, maxPaginas, nomeAutor } = params;
-
     let busca = {};
 
     if (editora) {
@@ -144,7 +150,7 @@ async function processaBusca(params) {
         if (autorEncontrado !== null) {
             busca.autor = autorEncontrado._id;
         } else {
-            busca = null;
+            busca = null; // Retorna null para o controller saber que o autor não existe
         }
     }
 
